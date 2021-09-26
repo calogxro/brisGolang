@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewPlayer(t *testing.T) {
-    player := NewPlayer("MAX")
+    player := NewPlayer("MAX", AI{RandomStrategy{}})
     
     assert.Equal(t, "MAX", player.id, "")
     assert.Equal(t, 0, player.score, "")
@@ -15,7 +15,7 @@ func TestNewPlayer(t *testing.T) {
 }
 
 func TestIndexOfCard(t *testing.T) {
-    player := NewPlayer("MAX")
+    player := NewPlayer("MAX", AI{RandomStrategy{}})
 
     idx := player.indexOfCard(nil)
   
@@ -34,7 +34,7 @@ func TestIndexOfCard(t *testing.T) {
 }
 
 func TestTakeCard(t *testing.T) {
-    player := NewPlayer("MAX")
+    player := NewPlayer("MAX", AI{RandomStrategy{}})
     
     i := 0
     

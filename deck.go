@@ -6,10 +6,11 @@ import (
     "time"
 )
 
-type Deck []Card
+type Deck []*Card
 
+// numOfCards is a number in [0...40]
 func NewDeck(numOfCards int) Deck {
-    deck := Deck(make([]Card, numOfCards))
+    deck := Deck(make([]*Card, numOfCards))
 
     for i, _ := range deck {
         deck[i] = NewCard(i)
@@ -28,16 +29,14 @@ func (deck Deck) shuffle() Deck {
     return deck
 }
 
-// ma serve prendere dalla fine?
-// altrimenti puoi: "return deck[0], deck[1:]" (aw4y)
-func (pDeck *Deck) pop() Card {
-    deck := *pDeck
-    *pDeck = deck[:len(deck)-1]
-    return deck[len(deck)-1]
+func (deck Deck) pop() (*Card, Deck) {
+    return deck[0], deck[1:]
 }
 // https://play.golang.org/p/jg_yfpdNXoM
+// https://stackoverflow.com/q/38013922
+// https://go101.org/article/unofficial-faq.html#error-non-name
 
-func pop(deck Deck) (Card, Deck) {
-    return deck[len(deck)-1], deck[:len(deck)-1]
+func pop(deck Deck) (*Card, Deck) {
+    return deck[0], deck[1:]
 }
 

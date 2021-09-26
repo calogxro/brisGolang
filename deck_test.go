@@ -1,6 +1,7 @@
 package main
 
 import (
+    //"fmt"
     "testing"
     "github.com/stretchr/testify/assert"
 )
@@ -23,22 +24,22 @@ func TestShuffle(t *testing.T) {
 func TestPop(t *testing.T) {
     for _, length := range []int{5, 10, 30, 40} {
         deck := NewDeck(length)
-        lastCard := deck[len(deck)-1]
+        wantedCard := deck[0]
         card, deck := pop(deck)
 
         assert.Equal(t, length-1, len(deck), "")
-        assert.Equal(t, lastCard, card, "")
-    }    
+        assert.Equal(t, wantedCard, card, "")
+    }
 }
 
 func TestDeckPop(t *testing.T) {
     for _, length := range []int{5, 10, 30, 40} {
         deck := NewDeck(length)
-        lastCard := deck[len(deck)-1]
-        card := deck.pop()
+        wantedCard := deck[0]
+        card, deck := deck.pop()
 
         assert.Equal(t, length-1, len(deck), "")
-        assert.Equal(t, lastCard, card, "")
+        assert.Equal(t, wantedCard, card, "")
     }
 }
 
@@ -52,6 +53,13 @@ func popX(pArray *[]int) int {
     array := *pArray
     *pArray = array[:len(array)-1]
     return array[len(array)-1]
+}
+
+func popX_(array *[]int) int {
+    length := len(*array) 
+    el := (*array)[length-1]
+    *array = (*array)[:length-1]
+    return el
 }
 
 func (pArray *MyArray) popY() MyInt {

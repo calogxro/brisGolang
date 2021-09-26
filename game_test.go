@@ -18,7 +18,7 @@ func TestNewGame(t *testing.T) {
         assert.Equal(t, [3]*Card{nil,nil,nil}, player.cards, "")
     }
     
-    assert.Equal(t, 6, len(*game.deck), "")
+    assert.Equal(t, 6, len(game.deck), "")
 }
 
 func TestGame(t *testing.T) {
@@ -29,18 +29,16 @@ func TestGame(t *testing.T) {
 func TestDealCard(t *testing.T) {
     game := NewGame("MAX", "MIN", NewDeck(6))    
 
-    player := game.players["MAX"]
-    deck := *game.deck
-
-    lastCard := &deck[len(deck)-1]
+    player := game.players[0]
+    wantedCard := game.deck[0]
     
     idx := game.dealCard(player)
     
-    assert.Equal(t, lastCard, player.cards[idx], "")
+    assert.Equal(t, wantedCard, player.cards[idx], "")
 }
 
 func TestGameStart(t *testing.T) {
-    game := NewGame("MAX", "MIN", NewDeck(6))
+    game := NewGame("MAX", "MIN", NewDeck(8))
 
     //fmt.Println("\ngame:   ", game)
     
@@ -48,13 +46,13 @@ func TestGameStart(t *testing.T) {
        
     //fmt.Println("\ngame:   ", game)
     
+    assert.Equal(t, 2, len(game.deck), "")
     assert.NotNil(t, game.trump, "")
+    assert.Equal(t, game.deck[len(game.deck)-1], game.trump, "")
     
     for _, player := range game.players {
         assert.Equal(t, -1, player.indexOfCard(nil), "")
     }
-    
-    assert.Equal(t, 0, len(*game.deck), "")
 }
 
 func TestGamePlay(t *testing.T) {
@@ -70,10 +68,12 @@ func TestGamePlay(t *testing.T) {
     
     //fmt.Println("\ngame:   ", game)
 
-    for _, player := range game.players {
-        cardIdx := player.makeDecision()
+    for _ = range game.players {
+        cardIdx := randomDecision(game)
         
-        game.play(player, cardIdx)
+        player := game.currentPlayer
+        
+        game.play(cardIdx)
         
         //fmt.Println("\ngame:   ", game)
         
@@ -82,14 +82,12 @@ func TestGamePlay(t *testing.T) {
         assert.Equal(t, length, len(game.table), "")
         assert.NotEqual(t, -1, player.indexOfCard(nil), "")
     }
-    
-    assert.Equal(t, len(game.players), length, "")
 }
 
 func TestNewRound(t *testing.T) {
     deck := NewDeck(40)
     deck = deck.shuffle()
-    deck = deck[1:7]
+    deck = deck[1:9]
     
     game := NewGame("MAX", "MIN", deck)
 
@@ -99,16 +97,27 @@ func TestNewRound(t *testing.T) {
     
     fmt.Println("\ngame:   ", game)
     
-    for _, player := range game.players {
-        cardIdx := player.makeDecision()
+    for _ = range game.players {
+        cardIdx := randomDecision(game)
         
-        game.play(player, cardIdx)
+        game.play(cardIdx)
         
         fmt.Println("\ngame:   ", game)
     }
     
+    nextCards := []*Card{game.deck[0], game.deck[1]}
+
     game.newRound()
     
     fmt.Println("\ngame:   ", game)
+
+    assert.NotEqual(t, -1, game.currentPlayer.indexOfCard(nextCards[0]), "")
+    assert.NotEqual(t, -1, game.nextPlayer().indexOfCard(nextCards[1]), "")
+
+    assert.Equal(t, 0, len(game.table), "")
+
+    for _, player := range game.players {
+        assert.Equal(t, -1, player.indexOfCard(nil), "")
+    }
 }
 
