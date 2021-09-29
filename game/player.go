@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
     "fmt"
@@ -10,18 +10,37 @@ type Player struct {
     nCards int
     cards [3]*Card
     controller Controller
+    turn bool
 }
 
-func NewPlayer(id string, c Controller) Player {
-    return Player{
+func NewPlayer(id string, c Controller) *Player {
+    return &Player{
         id: id,
         controller: c,
     }
 }
 
-func (player Player) String() string {
+func (player *Player) String() string {
+    /*var turn string
+    if player.turn {
+        turn = "*"
+    } else {
+        turn = " "
+    }*/
     return fmt.Sprintf(
-        "%v %v %v", player.id, player.cards, player.score)
+        "%v %v", player.cards, player.score)
+}
+
+func (player *Player) GetId() string {
+    return player.id
+}
+
+func (player *Player) SetId(id string) {
+    player.id = id
+}
+
+func (player *Player) GetController() Controller {
+    return player.controller
 }
 
 func (player *Player) indexOfCard(card *Card) int {
@@ -43,7 +62,7 @@ func (player *Player) takeCard(card *Card) int {
     return idx
 }
 
-func (player *Player) takeTurn(game Game, onAction func(int)) {
+func (player *Player) TakeTurn(game *Game, onAction func(int)) {
     player.controller.takeTurn(game, onAction)
 }
 

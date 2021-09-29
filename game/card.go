@@ -1,4 +1,4 @@
-package main
+package game
 
 var suits = [4]string{"♥", "♦", "♣", "♠"}
 var ranks = [10]string{"2", "4", "5", "6", "7", "J", "Q", "K", "T", "A"}

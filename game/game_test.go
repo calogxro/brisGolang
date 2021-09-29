@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
     "fmt"
@@ -6,8 +6,16 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
+func newGameForTesting() *Game {
+    p1 := NewPlayer("MAX", AI{RandomStrategy{}})
+    p2 := NewPlayer("MIN", AI{RandomStrategy{}})
+    return NewGame(p1, p2)
+}
+
 func TestNewGame(t *testing.T) {
-    game := NewGame("MAX", "MIN", NewDeck(6))
+    game := newGameForTesting()
+
+    game.deck = game.deck[1:7]
 
     //fmt.Println("\ngame:   ", game)
     
@@ -22,12 +30,12 @@ func TestNewGame(t *testing.T) {
 }
 
 func TestGame(t *testing.T) {
-    //game := NewGame("MAX", "MIN", NewDeck(6))
+    //game := newGameForTesting()
     //fmt.Println("game:   ", game)
 }
 
 func TestDealCard(t *testing.T) {
-    game := NewGame("MAX", "MIN", NewDeck(6))    
+    game := newGameForTesting()
 
     player := game.players[0]
     wantedCard := game.deck[0]
@@ -38,11 +46,13 @@ func TestDealCard(t *testing.T) {
 }
 
 func TestGameStart(t *testing.T) {
-    game := NewGame("MAX", "MIN", NewDeck(8))
+    game := newGameForTesting()
+
+    game.deck = game.deck[1:9]
 
     //fmt.Println("\ngame:   ", game)
     
-    game.start()
+    game.Start()
        
     //fmt.Println("\ngame:   ", game)
     
@@ -56,11 +66,11 @@ func TestGameStart(t *testing.T) {
 }
 
 func TestGamePlay(t *testing.T) {
-    game := NewGame("MAX", "MIN", NewDeck(6))
+    game := newGameForTesting()
 
     //fmt.Println("\ngame:   ", game)
     
-    game.start()
+    game.Start()
     
     length := 0
     
@@ -73,7 +83,7 @@ func TestGamePlay(t *testing.T) {
         
         player := game.currentPlayer
         
-        game.play(cardIdx)
+        game.Play(cardIdx)
         
         //fmt.Println("\ngame:   ", game)
         
@@ -85,29 +95,25 @@ func TestGamePlay(t *testing.T) {
 }
 
 func TestNewRound(t *testing.T) {
-    deck := NewDeck(40)
-    deck = deck.shuffle()
-    deck = deck[1:9]
-    
-    game := NewGame("MAX", "MIN", deck)
+    game := newGameForTesting()
 
     fmt.Println("\ngame:   ", game)
-    
-    game.start()
+
+    game.Start()
     
     fmt.Println("\ngame:   ", game)
     
     for _ = range game.players {
         cardIdx := randomDecision(game)
         
-        game.play(cardIdx)
+        game.Play(cardIdx)
         
         fmt.Println("\ngame:   ", game)
     }
     
     nextCards := []*Card{game.deck[0], game.deck[1]}
 
-    game.newRound()
+    game.NewRound()
     
     fmt.Println("\ngame:   ", game)
 

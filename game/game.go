@@ -1,7 +1,8 @@
-package main
+package game
 
 import (
     "fmt"
+    "errors"
 )
 
 type Op struct {
@@ -29,10 +30,11 @@ type Game struct {
     round int
 }
 
-func NewGame(id1 string, id2 string, deck Deck) Game {
+func NewGame(player1 *Player, player2 *Player) *Game {
     //player1 := NewPlayer(id1, AI{RandomStrategy{}})
-    player1 := NewPlayer(id1, Human{})
-    player2 := NewPlayer(id2, AI{RandomStrategy{}})
+    //player1 := NewPlayer(id1, Human{})
+    //player1 := NewPlayer(id1, Remote{})
+    //player2 := NewPlayer(id2, AI{RandomStrategy{}})
     
     /*
     players := map[string]*Player{
@@ -42,11 +44,12 @@ func NewGame(id1 string, id2 string, deck Deck) Game {
     // https://stackoverflow.com/q/40578646
     // https://stackoverflow.com/q/32751537
     
-    players := [2]*Player{&player1, &player2}
+    players := [2]*Player{player1, player2}
 
+    deck := NewDeck(40)
     deck = deck.shuffle()
     
-    return Game{
+    return &Game{
         players: players,
         currentPlayer: players[0],
         deck: deck,
@@ -55,28 +58,50 @@ func NewGame(id1 string, id2 string, deck Deck) Game {
     }
 }
 
-func (game Game) String() string {
+func (game *Game) GetDeck() Deck {
+    return game.deck
+}
+
+func (game *Game) SetDeck(deck Deck) {
+    game.deck = deck
+}
+
+func (game *Game) String() string {
     player1 := game.players[0]
     player2 := game.players[1]
-
+    
+    // StringWithPlayersSwapped(swapPlayers bool) string
+    /*if swapPlayers {
+        player1, player2 = player2, player1
+    }*/
+    
     var trump string
 
-    if game.trump == nil {
+    if game.trump == nil {  
         trump = ""
     } else {
         trump = suits[game.trump.suit]
     }
-        
+    
     return fmt.Sprintf(
-        "\n  players:   " +
-        "\n    %v:   %v %v" +
-        "\n    %v:   %v %v" +        
+        "\ngame:       " +
+        "\n  players:  " +
+        "\n    %v:   %v" +
+        "\n    %v:   %v" +        
         "\n  table:   %v" +
-        "\n  trump:   %v",
-        //"\n  deck:    %v", 
-        player1.id, player1.cards, player1.score, 
-        player2.id, player2.cards, player2.score,
-        game.table, trump)//, game.deck)
+        "\n  trump:   %v", /*+
+        "\n  deck:    %v",*/ 
+        player1.id, player1,
+        player2.id, player2,
+        game.table, trump/*, game.deck*/)
+}
+
+func (game *Game) GetCurrentPlayer() *Player {
+    return game.currentPlayer
+}
+
+func (game *Game) GetRound() int {
+    return game.round
 }
 
 func (game *Game) actions() []int {
@@ -93,7 +118,7 @@ func (game *Game) actions() []int {
     return actions
 }
 
-func (game *Game) isOver() bool {
+func (game *Game) IsOver() bool {
     p1 := game.players[0]
     p2 := game.players[1]
     
@@ -107,7 +132,7 @@ func (game *Game) dealCard(player *Player) int {
     return cardIdx
 }
 
-func (game *Game) start() {
+func (game *Game) Start() {
     game.trump = game.deck[len(game.deck)-1]
     
     for _, player := range game.players {
@@ -115,6 +140,8 @@ func (game *Game) start() {
         game.dealCard(player)
         game.dealCard(player)
     }
+    
+    game.currentPlayer.turn, game.nextPlayer().turn = true, false
 }
 
 func (game *Game) nextPlayer() *Player {
@@ -125,27 +152,38 @@ func (game *Game) nextPlayer() *Player {
     }
 }
     
-func (game *Game) play(cardIdx int) bool {
+func (game *Game) ValidAction(cardIdx int) bool {
     player := game.currentPlayer
-    
-    if cardIdx >= 0 && cardIdx <= 2 && player.cards[cardIdx] != nil {
-        card := player.play(cardIdx)
-        game.table = append(game.table, &Op{player, card})
-
-        game.currentPlayer = game.nextPlayer()
-  
-        return true
-    }
-
-    return false
+    return cardIdx >= 0 && cardIdx <= 2 && player.cards[cardIdx] != nil
 }
 
-func (game *Game) roundCompleted() bool {
+func (game *Game) Play(cardIdx int) error {
+    player := game.currentPlayer
+    
+    if ! game.ValidAction(cardIdx) {
+        return errors.New("cardIdx is not valid")
+    }
+    
+    card := player.play(cardIdx)
+    game.table = append(game.table, &Op{player, card})
+
+    game.currentPlayer = game.nextPlayer()
+    
+    if ! game.RoundCompleted() {
+        game.currentPlayer.turn, game.nextPlayer().turn = true, false
+    } else {
+        game.currentPlayer.turn, game.nextPlayer().turn = false, false
+    }
+
+    return nil
+}
+
+func (game *Game) RoundCompleted() bool {
     return len(game.table) == len(game.players)
 }
 
-func (game *Game) newRound() {
-    if ! game.roundCompleted() {
+func (game *Game) NewRound() {
+    if ! game.RoundCompleted() {
         return
     }
     
@@ -170,6 +208,8 @@ func (game *Game) newRound() {
         game.dealCard(game.currentPlayer)
         game.dealCard(game.nextPlayer())
     }
+    
+    game.currentPlayer.turn, game.nextPlayer().turn = true, false
     
     game.round++
 }
